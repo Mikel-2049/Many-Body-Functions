@@ -1,19 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-num_atoms = 50
-
-def generate_atoms(num_atoms, step_size):
-    
-    random_values = np.random.uniform(0, 4, num_atoms) # Generate an array with 30 random values in the range from 0 to 4
-    x_values = np.round(random_values, 2) # Round the values to two decimal places
-    y_values = -x_values + 4  # Compute y values based on the function -x + 4
-    atoms = np.column_stack((x_values, y_values))  # Combine x and y values to create atom coordinates
-    return atoms
-
-
-
-import numpy as np
 
 def interaction_value(r1, r2, r3, nu = 0.4):
     # Compute vectors pointing from point i to point j
@@ -49,63 +36,58 @@ def interaction_value(r1, r2, r3, nu = 0.4):
     return nu * numerator / denominator
 
 
+def given_atoms():
+    atoms = np.array([
+        (0, 1),
+        (0.1, 0.9),
+        (0.2, 0.8),
+        (0.25, 0.75),
+        (0.3, 0.7),
+        (0.4, 0.6),
+        (0.5, 0.5),
+        (0.6, 0.4),
+        (0.7, 0.3),
+        (0.8, 0.2),
+        (0.9, 0.1),
+        (0.93, 0.07),
+        (0.97, 0.03),
+        (1, 0)
+    ])
+    return atoms
+
+
 
 def main():
-    num_atoms = 50
-    step_size=0.1
-    atoms = generate_atoms(num_atoms, step_size)
-    # Extract x and y coordinates from the atoms
-    x_coords = atoms[:, 0]
-    y_coords = atoms[:, 1]
+    atoms = given_atoms()
 
-    # Plotting
-    plt.scatter(x_coords, y_coords, marker='o', color='blue')
-    plt.title("Atoms Scatter Plot")
-    plt.xlabel("X-values")
-    plt.ylabel("Y-values")
-    plt.grid(True)
-    plt.show()
-
-
-    interactions = []
-    for i in range(1, num_atoms + 1):
-        if i == 1:
-            atom1, atom2, _ = atoms[i-1], atoms[i], None
-        elif i == num_atoms:
-            atom1, atom2, _ = atoms[i-2], atoms[i-1], None
-        else:
-            atom1, atom2, atom3 = atoms[i-2], atoms[i-1], atoms[i]
-            interactions.append(interaction_value(atom1, atom2, atom3))
-
-    print(interactions)
+    while len(atoms) > 10:
+        potentials = [0]*len(atoms)  # Initialize a list of zeros with the same length as the number of atoms
+        for i in range(len(atoms)):
+            atom_i = atoms[i]
+            for j in range(len(atoms)):
+                if i == j:
+                    continue
+                atom_j = atoms[j]
+                for k in range(len(atoms)):
+                    if i == k or j == k:
+                        continue
+                    atom_k = atoms[k]
+                    potentials[j] += interaction_value(atom_i, atom_j, atom_k)  # Add potential to the middle atom
 
 
-    # Identify the index of the atom with the highest interaction value
-    index_highest_interaction = interactions.index(max(interactions))
-    index_lowest_interaction = interactions.index(min(interactions))
-    print(index_highest_interaction, max(interactions))
-    print(index_lowest_interaction, min(interactions))
+        # Plot the atoms and their potentials
+        plt.scatter(atoms[:, 0], atoms[:, 1], c=potentials, cmap='viridis')
+        plt.colorbar(label='Potential')
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.title('Axilrod-Teller Potential for Atoms')
+        plt.show()
 
-    # Extract x and y coordinates from the atoms
-    x_coords = atoms[:, 0]
-    y_coords = atoms[:, 1]
+        # Remove the atom with the highest potential
+        index_highest_potential = np.argmin(potentials)
+        atoms = np.delete(atoms, index_highest_potential, axis=0)
 
-    # Plotting all atoms in blue
-    plt.scatter(x_coords, y_coords, marker='o', color='blue')
-
-    # Highlighting the atom with the highest interaction value in red
-    plt.scatter(x_coords[index_highest_interaction], y_coords[index_highest_interaction], marker='o', color='red')
-
-    # Highlighting the atom with the lowest interaction value in yellow
-    plt.scatter(x_coords[index_lowest_interaction], y_coords[index_lowest_interaction], marker='o', color='yellow')
-
-    plt.title("Atoms Scatter Plot with Atom of Highest Interaction Highlighted")
-    plt.xlabel("X-values")
-    plt.ylabel("Y-values")
-    plt.grid(True)
-    plt.show()
-        
-
+    print("Remaining atoms:", atoms)
 
 if __name__ == "__main__":
     main()

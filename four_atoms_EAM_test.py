@@ -1,5 +1,6 @@
 import random
 import math
+import numpy as np
 
 # Constants
 rho = 5.4307  # Atomic density for silicon in Å⁻³
@@ -48,21 +49,41 @@ def calculate_pair_potential_energy(atoms):
     return pair_potential_energy
 
 
-# Generate random positions for the atoms along the line with one decimal place precision
-random_x_values = [round(random.uniform(0, 4), 1) for _ in range(4)]
-#random_x_values.sort()  # Sort the values for clarity
+def given_atoms():
+    atoms = np.array([
+        (0, 1),
+        (0.1, 0.9),
+        (0.2, 0.8),
+        (0.25, 0.75),
+        (0.3, 0.7),
+        (0.4, 0.6),
+        (0.5, 0.5),
+        (0.6, 0.4),
+        (0.7, 0.3),
+        (0.8, 0.2),
+        (0.9, 0.1),
+        (0.93, 0.07),
+        (0.97, 0.03),
+        (1, 0)
+    ])
+    return atoms
 
-# Create a list of atom positions along the line with random x values
-atoms = [(x, line_function(x)) for x in random_x_values]
+def main():
+    # Create a list of atom positions along the line with random x values
+    atoms = given_atoms()
 
-# Calculate the energy for each atom
-energies = {}
-for i, (x, y) in enumerate(atoms):
-    embedding_energy = calculate_embedding_energy(x, y)
-    pair_potential_energy = calculate_pair_potential_energy(atoms[:i] + atoms[i + 1:])
-    total_energy = embedding_energy + (0.5 * pair_potential_energy)
-    energies[f'Atom {chr(65 + i)}'] = total_energy
+    # Calculate the energy for each atom
+    energies = {}
+    for i, (x, y) in enumerate(atoms):
+        embedding_energy = calculate_embedding_energy(x, y)
+        pair_potential_energy = calculate_pair_potential_energy(atoms[:i] + atoms[i + 1:])
+        total_energy = embedding_energy + (0.5 * pair_potential_energy)
+        energies[f'Atom {chr(65 + i)}'] = total_energy
 
-# Print the calculated energies for all atoms
-for atom, energy in energies.items():
-    print(f'{atom}: Energy = {energy:.4f} eV')
+    # Print the calculated energies for all atoms
+    for atom, energy in energies.items():
+        print(f'{atom}: Energy = {energy:.4f} eV')
+
+
+if __name__ == "__main__":
+    main()

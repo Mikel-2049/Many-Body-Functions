@@ -62,30 +62,76 @@ def individual_interaction_energy(atoms):
     return interaction_energy
 
 
+def given_atoms():
+    atoms = np.array([
+        (0, 1),
+        (0.1, 0.9),
+        (0.2, 0.8),
+        (0.25, 0.75),
+        (0.3, 0.7),
+        (0.4, 0.6),
+        (0.5, 0.5),
+        (0.6, 0.4),
+        (0.7, 0.3),
+        (0.8, 0.2),
+        (0.9, 0.1),
+        (0.93, 0.07),
+        (0.97, 0.03),
+        (1, 0)
+    ])
+    return atoms
+
 
 def main():
     # Generate atoms
-    num_atoms = 50  # for example
-    atoms = generate_atoms(num_atoms)
+    #num_atoms = 50  # for example
+    #atoms = generate_atoms(num_atoms)
 
-    # Calculate individual interaction energy for each atom
-    individual_energy = individual_interaction_energy(atoms)
+    atoms = given_atoms()
 
-    print("Individual interaction energy for each atom:", individual_energy)
+    while len(atoms) > 11:
 
-    # Extract x and y coordinates
+        # Calculate individual interaction energy for each atom
+        individual_energy = individual_interaction_energy(atoms)
+
+        print("Individual interaction energy for each atom:", individual_energy)
+
+        # Extract x and y coordinates
+        x_coords = atoms[:, 0]
+        y_coords = atoms[:, 1]
+
+        # Plotting
+        plt.figure(figsize=(10, 6))
+        plt.scatter(x_coords, y_coords, s=100, c=individual_energy, cmap='viridis', edgecolors='k')
+        plt.colorbar(label='Interaction Energy')
+        plt.xlabel('X Coordinate')
+        plt.ylabel('Y Coordinate')
+        plt.title('Atoms Position and Interaction Energy')
+        plt.grid(True)
+        plt.show()
+
+         # Find the index of the atom with the highest energy
+        max_energy_idx = np.argmax(individual_energy)
+        
+        # Remove that atom
+        atoms = np.delete(atoms, max_energy_idx, axis=0)
+
+
+    # Finally, plot the remaining 11 atoms
+    individual_energies = individual_interaction_energy(atoms)
     x_coords = atoms[:, 0]
     y_coords = atoms[:, 1]
-
-    # Plotting
     plt.figure(figsize=(10, 6))
-    plt.scatter(x_coords, y_coords, s=100, c=individual_energy, cmap='viridis', edgecolors='k')
+    plt.scatter(x_coords, y_coords, s=100, c=individual_energies, cmap='viridis', edgecolors='k')
     plt.colorbar(label='Interaction Energy')
     plt.xlabel('X Coordinate')
     plt.ylabel('Y Coordinate')
-    plt.title('Atoms Position and Interaction Energy')
+    plt.title('Final 11 Atoms Position and Interaction Energy')
     plt.grid(True)
     plt.show()
+
+
+
 
 if __name__ == "__main__":
     main()
