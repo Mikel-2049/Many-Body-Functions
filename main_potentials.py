@@ -7,7 +7,7 @@ from calculate_distances_and_angles import calculate_distances_and_angles
 from calculate_energies import calculate_and_store_energies
 from find_most_contributing_atom import find_most_contributing_atom  
 from remove_atom import remove_atom_and_update_triplets
-from calculate_energy_contributions import calculate_energy_contributions
+
 
 def main():
     # Define the file paths for the POF files
