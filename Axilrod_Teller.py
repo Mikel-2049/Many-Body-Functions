@@ -1,6 +1,6 @@
 import numpy as np
 
-def axilrod_teller_potential(distances, nu=0.4):
+def axilrod_teller_potential(distances, nu=-4e-17):
     """
     Calculate the Axilrod-Teller potential using pre-calculated distances.
     
@@ -18,6 +18,10 @@ def axilrod_teller_potential(distances, nu=0.4):
     rij_mag = np.linalg.norm(rij)
     rik_mag = np.linalg.norm(rik)
     rjk_mag = np.linalg.norm(rjk)
+
+    rij_mag = rij_mag if rij_mag != 0 else 1e-10
+    rik_mag = rik_mag if rik_mag != 0 else 1e-10
+    rjk_mag = rjk_mag if rjk_mag != 0 else 1e-10
     
     # Calculate unit vectors
     rij_hat = rij / rij_mag

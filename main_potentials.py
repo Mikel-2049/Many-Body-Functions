@@ -10,6 +10,23 @@ from remove_atom import remove_atom_and_update_triplets
 from calculate_energy_contributions import calculate_energy_contributions
 
 def main():
+
+    # Ask the user to select a potential
+    print("Select a potential to use:")
+    print("1. Stillinger-Weber")
+    print("2. Axilrod-Teller")
+    choice = input("Enter the number of your choice: ")
+    
+    # Map the user choice to the potential name
+    if choice == '1':
+        selected_potential = 'Stillinger-Weber'
+    elif choice == '2':
+        selected_potential = 'Axilrod-Teller'
+    else:
+        print("Invalid choice. Exiting.")
+        return
+    
+
     # Define the file paths for the POF files
     pof_file_paths = [
         "WFG3_03D_15.pof",
@@ -43,7 +60,7 @@ def main():
             triplet_data = calculate_distances_and_angles(atoms, found_triplets, dimensionality)
 
             # Calculate and store energies
-            triplet_energies, atom_triplets, total_energy = calculate_and_store_energies(triplet_data, atoms, coord_to_index)
+            triplet_energies, atom_triplets, total_energy = calculate_and_store_energies(triplet_data, atoms, coord_to_index, selected_potential)
 
             # Find the most contributing atom
             most_contributing_atom, energy_after_removal = find_most_contributing_atom(triplet_energies, atom_triplets, total_energy)

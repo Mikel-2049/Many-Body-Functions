@@ -1,6 +1,8 @@
-from Stillinger_Weber import f3  # Import the Stillinger Weber function
+from Stillinger_Weber import f3
+from Axilrod_Teller import axilrod_teller_potential
 
-def calculate_and_store_energies(triplet_data, atoms, coord_to_index):
+def calculate_and_store_energies(triplet_data, atoms, coord_to_index, selected_potential):
+
     triplet_energies = {}
     atom_triplets = {index: [] for index in range(len(atoms))}
     
@@ -10,10 +12,16 @@ def calculate_and_store_energies(triplet_data, atoms, coord_to_index):
         distances = data['distances']
         angles = data['angles']
 
-        energy = f3(distances, angles)
+        if selected_potential == 'Stillinger-Weber':
+            energy = f3(distances, angles)
+        elif selected_potential == 'Axilrod-Teller':
+            energy = axilrod_teller_potential(distances)
+        else:
+            print(f"Warning: Unknown potential {selected_potential}.")
+        
         triplet_energies[triplet] = energy
         total_energy += energy
-        #print(f"Debug: total_energy calculated in calculate_and_store_energies = {total_energy}")
+
 
         
         for coord in triplet:
