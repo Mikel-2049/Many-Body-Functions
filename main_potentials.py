@@ -29,7 +29,9 @@ def main():
 
     # Define the file paths for the POF files
     pof_file_paths = [
-        "WFG3_03D_15.pof",
+        "WFG3_02D_last_reduxed.pof",
+        #"WFG3_02D_reduced_more.pof.txt",
+        #"WFG3_03D_15.pof",
         #"WFG3_03D.pof"
     ]
 
@@ -68,15 +70,14 @@ def main():
             print(f"Most contributing atom = {most_contributing_atom}")
 
             # Remove the atom and update triplets and energies
-            new_total_energy, found_triplets, triplet_energies = remove_atom_and_update_triplets(
-            most_contributing_atom, found_triplets, atom_triplets, triplet_energies, total_energy
-            )
+            new_total_energy, found_triplets, triplet_energies, new_atom_triplets, coord_to_index = remove_atom_and_update_triplets(most_contributing_atom, found_triplets, atom_triplets, triplet_energies, total_energy, coord_to_index)
+            
 
             # Update atoms and atomsTuple
             atoms.pop(most_contributing_atom)
             atomsTuple.pop(most_contributing_atom)
 
-            '''
+            
 
 
             # After you've processed your atoms, convert the list of atoms to an array
@@ -92,9 +93,9 @@ def main():
             plt.show()
             print(f"New Energy: {new_total_energy}") 
 
+            
+
             '''
-
-
             # After you've processed your atoms, convert the list of atoms to an array
             atoms_array = np.array(atoms)  # Assume 'atoms' is a list of lists or list of tuples
 
@@ -115,6 +116,7 @@ def main():
 
             # Show plot
             plt.show()
+            '''
         
 
 if __name__ == "__main__":
