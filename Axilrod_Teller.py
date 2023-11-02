@@ -1,6 +1,6 @@
 import numpy as np
 
-def axilrod_teller_potential(distances, nu=-4e-17):
+def axilrod_teller_potential(distances, nu=-4):
     """
     Calculate the Axilrod-Teller potential using pre-calculated distances.
     
