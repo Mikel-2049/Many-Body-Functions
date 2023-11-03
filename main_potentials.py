@@ -29,11 +29,10 @@ def main():
 
     # Define the file paths for the POF files
     pof_file_paths = [
-        "WFG3_02D_last_reduxed.pof",
-        #"WFG3_02D_reduced_more.pof.txt",
-        #"WFG3_03D_15.pof",
-        #"WFG3_03D.pof"
+        'geometries\WFG3_02D_Sampled.pof'
     ]
+
+    iteration_counter = 0
 
     # Loop through each POF file
     for file_path in pof_file_paths:
@@ -77,46 +76,35 @@ def main():
             atoms.pop(most_contributing_atom)
             atomsTuple.pop(most_contributing_atom)
 
-            
 
+            # Increment the iteration counter
+            iteration_counter += 1
 
-            # After you've processed your atoms, convert the list of atoms to an array
-            atoms_array = np.array(atoms)  # Assume 'atoms' is a list of lists or list of tuples
+            # Only plot every 10 iterations
+            if iteration_counter % 10 == 0:
+                # After you've processed your atoms, convert the list of atoms to an array
+                atoms_array = np.array(atoms)  # Assume 'atoms' is a list of lists or list of tuples
 
-            # Create a 2D scatter plot using the first two dimensions of the atoms' coordinates
-            plt.scatter(atoms_array[:, 0], atoms_array[:, 1])
+                # Plot depending on the dimensionality
+                if dimensionality == 2:
+                    # Create a 2D scatter plot using the first two dimensions of the atoms' coordinates
+                    plt.scatter(atoms_array[:, 0], atoms_array[:, 1])
+                    plt.xlabel("X-coordinate")
+                    plt.ylabel("Y-coordinate")
+                    plt.title("Atoms Plot in 2D")
+                    plt.show()
 
-            plt.xlabel("X-coordinate")
-            plt.ylabel("Y-coordinate")
-            plt.title("Atoms Plot")
-            
-            plt.show()
-            print(f"New Energy: {new_total_energy}") 
-
-            
-
-            '''
-            # After you've processed your atoms, convert the list of atoms to an array
-            atoms_array = np.array(atoms)  # Assume 'atoms' is a list of lists or list of tuples
-
-            # Create a new figure
-            fig = plt.figure()
-
-            # Add 3D subplot
-            # The argument '111' means 1x1 grid, first subplot, similar to MATLAB-style
-            ax = fig.add_subplot(111, projection='3d')
-
-            # Create a 3D scatter plot using the coordinates of the atoms
-            ax.scatter(atoms_array[:, 0], atoms_array[:, 1], atoms_array[:, 2])
-
-            ax.set_xlabel("X-coordinate")
-            ax.set_ylabel("Y-coordinate")
-            ax.set_zlabel("Z-coordinate")
-            ax.set_title("3D Plot of Atoms")
-
-            # Show plot
-            plt.show()
-            '''
+                elif dimensionality == 3:
+                    # Create a new figure for 3D plot
+                    fig = plt.figure()
+                    ax = fig.add_subplot(111, projection='3d')
+                    # Create a 3D scatter plot using the coordinates of the atoms
+                    ax.scatter(atoms_array[:, 0], atoms_array[:, 1], atoms_array[:, 2])
+                    ax.set_xlabel("X-coordinate")
+                    ax.set_ylabel("Y-coordinate")
+                    ax.set_zlabel("Z-coordinate")
+                    ax.set_title("3D Plot of Atoms")
+                    plt.show()
         
 
 if __name__ == "__main__":
