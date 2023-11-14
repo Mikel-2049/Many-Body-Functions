@@ -1,7 +1,7 @@
 import numpy as np
 
 # Given parameters
-a = 1.80 + 4
+a = 1.80
 lambda_ = 21.0
 alpha = 3.4723e-12
 gamma = 1.20 
