@@ -87,10 +87,8 @@ def main():
             # Now update found_triplets to remove any triplets that include the removed atom
             found_triplets = remove_atom_from_triplets(most_contributing_atom, found_triplets)
 
-
             # Update atoms and atomsTuple
             atoms.pop(most_contributing_atom)
-            #atom_triplets.pop(most_contributing_atom)
 
             # Increment the iteration counter
             iteration_counter += 1
