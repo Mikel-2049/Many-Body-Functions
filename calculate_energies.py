@@ -21,11 +21,8 @@ def calculate_and_store_energies(triplet_data, atoms, coord_to_index, selected_p
         
         triplet_energies[triplet] = energy
         total_energy += energy
-
-
-        
-        for coord in triplet:
-            index = coord_to_index[coord]
+    
+        for index in triplet:
             atom_triplets[index].append(triplet)
             
     return triplet_energies, atom_triplets, total_energy
