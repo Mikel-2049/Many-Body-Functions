@@ -29,7 +29,7 @@ def main():
         return
 
     # Define the file paths for the POF files
-    pof_file_paths = ['geometries\DTLZ7_03D_250.pof']
+    pof_file_paths = ['geometries\DTLZ7_03D_350.pof']
 
     iteration_counter = 0
 

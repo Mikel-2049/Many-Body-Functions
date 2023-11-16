@@ -3,10 +3,10 @@ import random
 file_path = 'geometries\DTLZ7_03D.pof'
 
 # Output file path
-output_file_path = 'geometries\DTLZ7_03D_250.pof'
+output_file_path = 'geometries\DTLZ7_03D_350.pof'
 
 # Number of points to sample
-num_sampled_points = 250
+num_sampled_points = 350
 
 # Read the original header to get the dimensionality
 with open(file_path, 'r') as file:
