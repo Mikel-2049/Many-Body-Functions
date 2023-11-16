@@ -17,12 +17,3 @@ def read_pof_file(file_path: str) -> Tuple[int, List[List[float]], dict[Tuple[fl
             index += 1  # Increment the index
             
     return dimensionality, atoms, coord_to_index
-
-
-# Example usage
-#if __name__ == "__main__":
-    file_path = "WFG3_03D.pof"
-    dimensionality, atoms = read_pof_file(file_path)
-    print(f"Dimensionality: {dimensionality}")
-    print(f"Number of atoms: {len(atoms)}")
-    print(f"First 5 atoms: {atoms[:5]}")
