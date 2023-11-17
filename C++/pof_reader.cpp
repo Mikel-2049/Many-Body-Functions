@@ -28,10 +28,6 @@ tuple<int, vector<vector<float>>, map<vector<float>, int>> read_pof_file(const s
     char hash; // To consume the '#' character
     first_line >> hash >> num_points >> dimensionality;
 
-    // Debugging output
-    cout << "Parsed dimensionality: " << dimensionality << endl;
-    cout << "Parsed number of points: " << num_points << endl;
-
     while (getline(file, line)) {
         stringstream ss(line);
         vector<float> coords(dimensionality);
