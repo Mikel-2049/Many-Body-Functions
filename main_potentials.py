@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 from read_pof_file import read_pof_file
 from unique_triplets_m2 import find_unique_triplets
@@ -12,7 +13,7 @@ from remove_atom import remove_atom_from_triplets
 from remove_atom import update_triplet_data
 
 
-def main():
+def main():    
     # Ask the user to select a potential
     print("Select a potential to use:")
     print("1. Stillinger-Weber")
@@ -27,9 +28,17 @@ def main():
     else:
         print("Invalid choice. Exiting.")
         return
+    
+    # Define a directory for saving images
+    image_dir = "Avances/SW_IMOP4_03D/400"
+    if not os.path.exists(image_dir):
+        os.makedirs(image_dir)
 
-    # Define the file paths for the POF files
-    pof_file_paths = ['geometries\DTLZ7_03D_350.pof']
+    # Define the directory containing the POF files
+    pof_directory = 'test_geometries/Sampled'
+
+    # List all POF files in the directory
+    pof_file_paths = [os.path.join(pof_directory, file) for file in os.listdir(pof_directory) if file.endswith('.pof')]    # Define the file paths for the POF files
 
     iteration_counter = 0
 
@@ -66,7 +75,10 @@ def main():
             triplet_data[triplet] = {'distances': distances, 'angles': angles}
 
         # Define the number of atoms you want to keep
-        num_atoms_to_keep = 10
+        num_atoms_to_keep = 24
+
+        # Define a list of atom count milestones
+        atom_milestones = [25, 50, 75, 100]
 
         # Start the iterative loop
         while len(atoms) > num_atoms_to_keep:
@@ -93,31 +105,48 @@ def main():
             # Increment the iteration counter
             iteration_counter += 1
 
-            # Only plot every 10 iterations
-            if iteration_counter % 10 == 0:
-                # After you've processed your atoms, convert the list of atoms to an array
-                atoms_array = np.array(atoms)  # Assume 'atoms' is a list of lists or list of tuples
+            # Check if the current number of atoms is a milestone
+            if len(atoms) in atom_milestones:
+                atoms_array = np.array(atoms)  # Convert atoms to array
 
-                # Plot depending on the dimensionality
+                # Create the plot
+                fig, ax = plt.subplots()
                 if dimensionality == 2:
-                    # Create a 2D scatter plot using the first two dimensions of the atoms' coordinates
-                    plt.scatter(atoms_array[:, 0], atoms_array[:, 1])
-                    plt.xlabel("X-coordinate")
-                    plt.ylabel("Y-coordinate")
-                    plt.title("Atoms Plot in 2D")
-                    plt.show()
+                    ax.scatter(atoms_array[:, 1], atoms_array[:, 0])  # Swap x and y coordinates
+                    ax.set_xlabel("Y-coordinate")
+                    ax.set_ylabel("X-coordinate")
+                    ax.set_title("Rotated Atoms Plot in 2D")
+                    ax.invert_yaxis()  # Invert the original y-axis (now x-axis)
 
                 elif dimensionality == 3:
-                    # Create a new figure for 3D plot
-                    fig = plt.figure()
+                    # For 3D plot, rotating the axes is a bit more complex
                     ax = fig.add_subplot(111, projection='3d')
-                    # Create a 3D scatter plot using the coordinates of the atoms
-                    ax.scatter(atoms_array[:, 0], atoms_array[:, 1], atoms_array[:, 2])
-                    ax.set_xlabel("X-coordinate")
-                    ax.set_ylabel("Y-coordinate")
+                    ax.scatter(atoms_array[:, 1], atoms_array[:, 0], atoms_array[:, 2])  # Swap x and y
+                    ax.set_xlabel("Y-coordinate")
+                    ax.set_ylabel("X-coordinate")
                     ax.set_zlabel("Z-coordinate")
-                    ax.set_title("3D Plot of Atoms")
-                    plt.show()
+                    ax.set_title("Rotated 3D Plot of Atoms")
+                    ax.invert_yaxis()  # Invert the original y-axis (now x-axis)
+
+
+                # Construct the base for the output file name
+                base_file_name = os.path.basename(file_path).rsplit('.', 1)[0]
+                milestone_suffix = f"_{len(atoms)}"
+
+                # Save the figure
+                fig.savefig(os.path.join(image_dir, base_file_name + milestone_suffix + ".png"))
+                plt.close(fig)  # Close the figure to free memory
+
+                # Save the current state of atoms to a .pof file
+                output_pof_path = os.path.join(image_dir, base_file_name + milestone_suffix + ".pof")
+                with open(output_pof_path, 'w') as pof_file:
+                    # Write the header (assuming the header format is the same as the input files)
+                    pof_file.write(f"# {len(atoms)} {dimensionality}\n")
+                    # Write each atom's coordinates
+                    for atom in atoms:
+                        pof_file.write(' '.join(map(str, atom)) + '\n')
+
+
         
 
 if __name__ == "__main__":
