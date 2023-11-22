@@ -35,12 +35,13 @@ def main():
         os.makedirs(image_dir)
 
     # Define the directory containing the POF files
-    pof_directory = 'test_geometries/Sampled'
+    pof_directory = 'test_geometries/Sampled/'
 
     # List all POF files in the directory
     pof_file_paths = [os.path.join(pof_directory, file) for file in os.listdir(pof_directory) if file.endswith('.pof')]    # Define the file paths for the POF files
-
+    #pof_file_paths = "test_geometries/Sampled/VIE3_03D_sampled.pof"
     iteration_counter = 0
+
 
     # Loop through each POF file
     for file_path in pof_file_paths:

@@ -3,6 +3,7 @@
         "ostream": "cpp",
         "array": "cpp",
         "tuple": "cpp",
-        "limits": "cpp"
+        "limits": "cpp",
+        "iostream": "cpp"
     }
 }

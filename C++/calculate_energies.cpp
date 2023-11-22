@@ -15,14 +15,14 @@ double f3(const array<double, 3>& distances, const array<double, 3>& angles);
 double axilrod_teller_potential(const array<double, 3>& distances, double nu = -4);
 
 // Function to calculate and store energies
-tuple<map<tuple<int, int, int>, double>, map<int, vector<tuple<int, int, int>>>, double> calculate_and_store_energies(
+tuple<map<tuple<int, int, int>, double>, double> calculate_and_store_energies(
     const map<tuple<int, int, int>, tuple<array<double, 3>, tuple<double, double, double>>>& triplet_data, 
     const vector<vector<float>>& atoms, 
     const map<vector<float>, int>& coord_to_index, 
-    const string& selected_potential) {
+    const string& selected_potential,
+    map<int, vector<tuple<int, int, int>>>& atom_triplets) {
 
     map<tuple<int, int, int>, double> triplet_energies;
-    map<int, vector<tuple<int, int, int>>> atom_triplets;
     double total_energy = 0.0;
 
     for (const auto& item : triplet_data) {
@@ -42,17 +42,15 @@ tuple<map<tuple<int, int, int>, double>, map<int, vector<tuple<int, int, int>>>,
             exit(1); // or handle this differently
         }
 
-
         triplet_energies[triplet] = energy;
         total_energy += energy;
 
-
+        // Update atom_triplets map for each atom in the triplet
         for (int index : {get<0>(triplet), get<1>(triplet), get<2>(triplet)}) {
             atom_triplets[index].push_back(triplet);
         }
     }
     
-    cout << "Total_energy: " << total_energy << endl;
-
-    return make_tuple(triplet_energies, atom_triplets, total_energy);
+    //cout << "Total_energy: " << total_energy << endl;
+    return make_tuple(triplet_energies, total_energy);
 }

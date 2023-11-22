@@ -6,6 +6,8 @@
 #include <cmath>
 #include <algorithm>
 #include <array> 
+#include <fstream>
+
 
 using namespace std;
 
@@ -27,68 +29,78 @@ string select_potential();
 // Forward declaration for find_most_contributing_atom
 int find_most_contributing_atom(double& max_energy_diff);
 
-// Forward declaration for triplet energies
-map<tuple<int, int, int>, double> triplet_energies;
-
 // Forward declaration for atom_triplets
 map<int, vector<tuple<int, int, int>>> atom_triplets;
 
+// Forward declaration for triplet energies
+map<tuple<int, int, int>, double> triplet_energies;
+
 // Forward declaration for calculating and storing energies
-tuple<map<tuple<int, int, int>, double>, 
-           map<int, vector<tuple<int, int, int>>>, 
-           double> calculate_and_store_energies(
-               const map<tuple<int, int, int>, 
-               tuple<array<double, 3>, tuple<double, double, double>>>& triplet_data, 
-               const vector<vector<float>>& atoms, 
-               const map<vector<float>, int>& coord_to_index, 
-               const string& selected_potential);
+tuple<map<tuple<int, int, int>, double>, double> calculate_and_store_energies(
+    const map<tuple<int, int, int>, tuple<array<double, 3>, tuple<double, double, double>>>& triplet_data, 
+    const vector<vector<float>>& atoms, 
+    const map<vector<float>, int>& coord_to_index, 
+    const string& selected_potential,
+    map<int, vector<tuple<int, int, int>>>& atom_triplets);
+
+void update_atom_triplets(map<int, vector<tuple<int, int, int>>>& atom_triplets, int atom_to_remove);
+
+void update_triplet_energies(map<tuple<int, int, int>, double>& triplet_energies, const vector<tuple<int, int, int>>& triplets_to_remove);
+
+void update_atoms_and_coord_to_index(vector<vector<float>>& atoms, map<vector<float>, int>& coord_to_index, int atom_to_remove);
 
 
-int find_most_contributing_atom(double& max_energy_diff, map<int, vector<tuple<int, int, int>>>& atom_triplets) {
-    max_energy_diff = -numeric_limits<double>::infinity();
+int find_most_contributing_atom(const map<int, vector<tuple<int, int, int>>>& atom_triplets, 
+                                const map<tuple<int, int, int>, double>& triplet_energies) {
+    double max_energy_diff = -numeric_limits<double>::infinity();
     int most_contributing_atom = -1;
 
-    // Debug: Check if entering the loop
-    cout << "Entering loop. Size of atom_triplets: " << atom_triplets.size() << endl;
+    // Iterate over each atom and its associated triplets
+    for (const auto& [atom, triplets] : atom_triplets) {
+        double total_energy_for_atom = 0.0;
 
-    //for(int i=0; i < atom_triplets.size() ; i++) {
-    //for (const auto& [atom, triplets] : atom_triplets) {
-    for (const auto& atom_triplet : atom_triplets) {
-
-        int atom = atom_triplet.first;
-        vector<tuple<int, int, int>> triplets = atom_triplet.second;
-
-        double energy_to_remove = 0.0;
-
-
-        // Debug: Check the triplets for each atom
-        // cout << "Atom " << atom << " is part of " << triplets.size() << " triplets." << endl;
-
+        // Sum the energies of all triplets that the atom is part of
         for (const auto& triplet : triplets) {
-            double triplet_energy = triplet_energies[triplet];
-            energy_to_remove += triplet_energy;
-
-            // Debug: Print each triplet's energy contribution
-            //cout << "    Triplet: (" << get<0>(triplet) << ", " << get<1>(triplet) << ", " << get<2>(triplet) 
-            //     << "), Energy: " << triplet_energy << endl;
+            total_energy_for_atom += triplet_energies.at(triplet);
         }
 
-        cout << "Atom: " << atom << ", Total Energy to Remove: " << energy_to_remove << endl;
-
-        if (energy_to_remove > max_energy_diff) {
-            max_energy_diff = energy_to_remove;
+        // Update if this atom contributes more energy than the current max
+        if (total_energy_for_atom > max_energy_diff) {
+            max_energy_diff = total_energy_for_atom;
             most_contributing_atom = atom;
-            cout << "    Updated most contributing atom to: " << atom << ", Max Energy Diff: " << max_energy_diff << endl;
+            //cout << "    Updated most contributing atom to: " << atom << ", Total Energy: " << max_energy_diff << endl;
         }
     }
 
-    cout << "Most contributing atom after loop: " << most_contributing_atom << endl;
+    //cout << "Most contributing atom after loop: " << most_contributing_atom << endl;
     return most_contributing_atom;
 }
 
+void save_atoms_to_pof(const vector<vector<float>>& atoms, const string& filename) {
+    ofstream outfile(filename);
+    if (outfile.is_open()) {
+        for (const auto& atom : atoms) {
+            // Assuming each atom's data is a vector of floats (e.g., x, y, z coordinates)
+            for (const auto& coord : atom) {
+                outfile << coord << " ";
+            }
+            outfile << endl;
+        }
+        outfile.close();
+    } else {
+        cerr << "Unable to open file " << filename << endl;
+    }
+}
+
+
+
 
 int main() {
-    string file_path = "geometries/DTLZ7_03D_350.pof"; 
+
+
+    double total_energy;
+
+    string file_path = "test_geometries/Sampled/VIE1_03D_sampled.pof"; 
 
     // Call the read_pof_file function
     auto [dimensionality, atoms, coord_to_index] = read_pof_file(file_path);
@@ -119,19 +131,50 @@ int main() {
 
     string selected_potential = select_potential();
 
-    auto [triplet_energies, atom_triplets, total_energy] = calculate_and_store_energies(triplet_data, atoms, coord_to_index, selected_potential);
+    map<int, vector<tuple<int, int, int>>> atom_triplets;
 
-    cout << "Total Energy: " << total_energy <<endl;
+    vector<int> milestones = {100, 75, 50, 25};
+    set<int> milestones_set(milestones.begin(), milestones.end());
 
-    // Debugging print to check the size of atom_triplets
-    cout << "Size of atom_triplets: " << atom_triplets.size() << endl;
+    while (atoms.size() > 24) {
+        auto [current_triplet_energies, current_total_energy] = calculate_and_store_energies(
+            triplet_data, atoms, coord_to_index, selected_potential, atom_triplets);
 
-    double max_energy_diff;
+        double max_energy_diff;
 
-    int most_contributing_atom = find_most_contributing_atom(max_energy_diff, atom_triplets);
+        // Now use the updated global atom_triplets directly
+        int most_contributing_atom = find_most_contributing_atom(atom_triplets, current_triplet_energies);
 
-    cout << "Max Energy Difference: " << max_energy_diff << endl;
-    cout << "Most contributing atom: " << most_contributing_atom << endl;
+        //cout << "Most contributing atom: " << most_contributing_atom << endl;
+
+        //cout << "Number of atoms before removing: " << atoms.size() << endl;
+        // After finding the most contributing atom
+
+        //cout << "Size of atom_triplets: " << atom_triplets.size() << endl;
+        //for (const auto& pair : atom_triplets) {
+            //cout << "Atomxd: " << pair.first << ", Number of Triplets: " << pair.second.size() << endl;
+        //}
+
+        vector<tuple<int, int, int>> triplets_to_remove = atom_triplets[most_contributing_atom];
+        //cout << "Number of triplets to remove: " << triplets_to_remove.size() << endl;
+
+        // Update the data structures
+        update_atom_triplets(atom_triplets, most_contributing_atom);
+        update_triplet_energies(current_triplet_energies, atom_triplets[most_contributing_atom]);
+        update_atoms_and_coord_to_index(atoms, coord_to_index, most_contributing_atom);
+
+        // Assign updated structures back to global variables
+        triplet_energies = current_triplet_energies;
+        total_energy = current_total_energy;
+
+        cout << "Atoms: " << atoms.size() << endl;
+
+        // Check if the current atom count is a milestone and save to a .pof file
+        if (milestones_set.find(atoms.size()) != milestones_set.end()) {
+            string filename = "output_at_" + to_string(atoms.size()) + "_atoms.pof";
+            save_atoms_to_pof(atoms, filename);
+        }
+    }
 
 
     return 0;
