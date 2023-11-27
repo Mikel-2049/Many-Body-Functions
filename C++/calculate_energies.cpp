@@ -39,7 +39,7 @@ tuple<map<tuple<int, int, int>, double>, double> calculate_and_store_energies(
         if (distance_map.find(key1) == distance_map.end() ||
             distance_map.find(key2) == distance_map.end() ||
             distance_map.find(key3) == distance_map.end()) {
-            cout << "Key not found in distance_map for triplet: (" << get<0>(triplet) << ", " << get<1>(triplet) << ", " << get<2>(triplet) << ")" << endl;
+            //cout << "Key not found in distance_map for triplet: (" << get<0>(triplet) << ", " << get<1>(triplet) << ", " << get<2>(triplet) << ")" << endl;
             continue;  // Skip this triplet if any key is missing
         }
 

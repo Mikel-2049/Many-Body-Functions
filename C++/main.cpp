@@ -47,11 +47,17 @@ tuple<map<tuple<int, int, int>, double>, double> calculate_and_store_energies(
 
 void update_atom_triplets(map<int, vector<tuple<int, int, int>>>& atom_triplets, int atom_to_remove);
 
-void update_triplet_energies(map<tuple<int, int, int>, double>& triplet_energies, const vector<tuple<int, int, int>>& triplets_to_remove);
-
-void update_atoms_and_coord_to_index(vector<vector<float>>& atoms, map<vector<float>, int>& coord_to_index, int atom_to_remove);
+void update_atoms_and_coord_to_index(vector<vector<float>>& atoms, 
+                                     map<vector<float>, int>& coord_to_index, 
+                                     map<int, vector<tuple<int, int, int>>>& atom_triplets,
+                                     map<tuple<int, int, int>, double>& triplet_energies,
+                                     map<tuple<int, int, int>, tuple<array<double, 3>, tuple<double, double, double>>>& triplet_data,
+                                     int atom_to_remove);
 
 void update_distance_map(map<pair<int, int>, double>& distance_map, int atom_to_remove);
+
+void update_triplet_data(map<tuple<int, int, int>, tuple<array<double, 3>, tuple<double, double, double>>>& triplet_data, 
+                         int atom_to_remove);
 
 
 int find_most_contributing_atom(const map<int, vector<tuple<int, int, int>>>& atom_triplets, 
@@ -64,8 +70,8 @@ int find_most_contributing_atom(const map<int, vector<tuple<int, int, int>>>& at
 
         for (const auto& triplet : triplets) {
             if (triplet_energies.find(triplet) == triplet_energies.end()) {
-                cout << "Triplet not found in triplet_energies: (" 
-                     << get<0>(triplet) << ", " << get<1>(triplet) << ", " << get<2>(triplet) << ")" << endl;
+                //cout << "Triplet not found in triplet_energies: (" 
+                     //<< get<0>(triplet) << ", " << get<1>(triplet) << ", " << get<2>(triplet) << ")" << endl;
             } else {
                 total_energy_for_atom += triplet_energies.at(triplet);
             }
@@ -74,6 +80,7 @@ int find_most_contributing_atom(const map<int, vector<tuple<int, int, int>>>& at
         if (total_energy_for_atom > max_energy_diff) {
             max_energy_diff = total_energy_for_atom;
             most_contributing_atom = atom;
+            cout << "Most Contributing Atom: " << most_contributing_atom << endl;
         }
     }
 
@@ -102,7 +109,6 @@ void save_atoms_to_pof(const vector<vector<float>>& atoms, const string& filenam
 
 
 int main() {
-
 
     double total_energy;
 
@@ -143,95 +149,41 @@ int main() {
 
     map<int, vector<tuple<int, int, int>>> atom_triplets;
 
-    vector<int> milestones = {100, 75, 50, 25};
+    vector<int> milestones = {150, 125, 100, 75, 50, 25};
     set<int> milestones_set(milestones.begin(), milestones.end());
 
     // Place this just before the while loop starts in main
     cout << "[Main] Initial Atom Triplets Size: " << atom_triplets.size() << endl;
 
     while (atoms.size() > 24) {
+        // Clear triplet energies at the start of each iteration
+        triplet_energies.clear();
 
-        //cout << "\n[Start of Cycle Debugging]" << endl;
-        //cout << "Atoms Size: " << atoms.size() << endl;
-        //cout << "Coord to Index Size: " << coord_to_index.size() << endl;
-        //cout << "Atom Triplets Size: " << atom_triplets.size() << endl;
-        //cout << "Distance Map Size: " << distance_map.size() << endl;
-        //cout << "Triplet Data Size: " << triplet_data.size() << endl;
-        //cout << "Triplet Energies Size: " << triplet_energies.size() << endl;
-
-
-        // Place this at the beginning of the while loop
-        //cout << "[Main Loop Start] Atom Triplets Size: " << atom_triplets.size() << endl;
-
-        // Place these around the calculate_and_store_energies call in main
-        //cout << "[Before calculate_and_store_energies] Atom Triplets Size: " << atom_triplets.size() << endl;
-
+        // Calculate and store energies
         auto [current_triplet_energies, current_total_energy] = calculate_and_store_energies(
             triplet_data, atoms, coord_to_index, selected_potential, distance_map, atom_triplets);
 
-        //cout << "[After calculate_and_store_energies] Atom Triplets Size: " << atom_triplets.size() << endl;
-
-        //cout << "[After calculate_and_store_energies] Triplet Energies Size: " << triplet_energies.size() << endl;
-
-
-        double max_energy_diff;
-
-        // Now use the updated global atom_triplets directly
+        // Find the most contributing atom
         int most_contributing_atom = find_most_contributing_atom(atom_triplets, current_triplet_energies);
 
-        vector<tuple<int, int, int>> triplets_to_remove = atom_triplets[most_contributing_atom];
+        // Ensure the index is non-negative
+        if (most_contributing_atom >= 0) {
+            // Update atoms, coord_to_index, and all related structures
+            update_triplet_data(triplet_data, most_contributing_atom);     
+            update_distance_map(distance_map, most_contributing_atom);       
+            update_atoms_and_coord_to_index(atoms, coord_to_index, atom_triplets, triplet_energies, triplet_data, most_contributing_atom);
+            update_atom_triplets(atom_triplets, most_contributing_atom);
 
-        // Update the data structures
-        //cout << "[Main Loop before first function call] Atom Triplets Size: " << atom_triplets.size() << endl;
-        update_atom_triplets(atom_triplets, most_contributing_atom);
-        //cout << "[Main Loop after first function call] Atom Triplets Size: " << atom_triplets.size() << endl;
-
-        // Debug: Log the triplets to be removed
-        //cout << "[triplets_to_remove] Size: " << triplets_to_remove.size() << endl;
-
-
-        update_triplet_energies(current_triplet_energies, triplets_to_remove);
-        //cout << "[Main Loop after second function call] Atom Triplets Size: " << atom_triplets.size() << endl;
-
-
-        update_atoms_and_coord_to_index(atoms, coord_to_index, most_contributing_atom);
-        //cout << "[Main Loop after third function call] Atom Triplets Size: " << atom_triplets.size() << endl;
-
-        // Update distance_map
-        update_distance_map(distance_map, most_contributing_atom);
-
-        for (auto it = triplet_data.begin(); it != triplet_data.end(); ) {
-            const auto& triplet = it->first;
-            if (get<0>(triplet) == most_contributing_atom || get<1>(triplet) == most_contributing_atom || get<2>(triplet) == most_contributing_atom) {
-                it = triplet_data.erase(it); // Remove triplets involving the removed atom
-            } else {
-                ++it;
-            }
+            // Assign updated energies back to global variables
+            triplet_energies = current_triplet_energies;
+            total_energy = current_total_energy;
+        } else {
+            cerr << "Invalid most contributing atom index: " << most_contributing_atom << endl;
+            // Consider breaking out of the loop or taking corrective action here
         }
 
-        // Assign updated structures back to global variables
-        triplet_energies = current_triplet_energies;
-        total_energy = current_total_energy;
-
         cout << "Atoms: " << atoms.size() << endl;
-
-        // Place this at the ending of the while loop
         cout << "[Main Loop Ends] Atom Triplets Size: " << atom_triplets.size() << endl;
-
-
-        // Add debug statements at the end of each cycle
-            //cout << "\n[End of Cycle Debugging]" << endl;
-            //cout << "Atoms Size: " << atoms.size() << endl;
-            //cout << "Coord to Index Size: " << coord_to_index.size() << endl;
-            //cout << "Atom Triplets Size: " << atom_triplets.size() << endl;
-            //cout << "Distance Map Size: " << distance_map.size() << endl;
-            //cout << "Triplet Data Size: " << triplet_data.size() << endl;
-            //cout << "Triplet Energies Size: " << triplet_energies.size() << endl;
-
-            // Iterate through each atom_triplet pair and print the size of each vector
-            //for (const auto& pair : atom_triplets) {
-                //cout << "Atom " << pair.first << " - Number of Triplets: " << pair.second.size() << endl;
-            //}
 
         // Check if the current atom count is a milestone and save to a .pof file
         if (milestones_set.find(atoms.size()) != milestones_set.end()) {
@@ -239,7 +191,5 @@ int main() {
             save_atoms_to_pof(atoms, filename);
         }
     }
-
-
     return 0;
 }

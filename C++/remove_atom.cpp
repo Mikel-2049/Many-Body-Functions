@@ -4,6 +4,8 @@
 #include <tuple>
 #include <set>
 #include <algorithm>
+#include <array>
+
 
 using namespace std;
 
@@ -32,22 +34,15 @@ void update_atom_triplets(map<int, vector<tuple<int, int, int>>>& atom_triplets,
 }
 
 
-void update_triplet_energies(map<tuple<int, int, int>, double>& triplet_energies, const vector<tuple<int, int, int>>& triplets_to_remove) {
-    for (const auto& triplet : triplets_to_remove) {
-        triplet_energies.erase(triplet);
-    }
-}
-
-void update_atoms_and_coord_to_index(vector<vector<float>>& atoms, map<vector<float>, int>& coord_to_index, int atom_to_remove) {
-    //cout << "Atoms Before: " << atoms.size() << endl;
-    //cout << "Coord to Index Before: " << coord_to_index.size() << endl;
-
-    //cout << "[Before Removal] Atoms Size: " << atoms.size() << ", Coord to Index Size: " << coord_to_index.size() << endl;
-
+void update_atoms_and_coord_to_index(vector<vector<float>>& atoms, 
+                                     map<vector<float>, int>& coord_to_index, 
+                                     map<int, vector<tuple<int, int, int>>>& atom_triplets,
+                                     map<tuple<int, int, int>, double>& triplet_energies,
+                                     map<tuple<int, int, int>, tuple<array<double, 3>, tuple<double, double, double>>>& triplet_data,
+                                     int atom_to_remove) {
     
-    if (atom_to_remove < atoms.size()) {
-        atoms.erase(atoms.begin() + atom_to_remove);
-    }
+    atoms.erase(atoms.begin() + atom_to_remove);
+    
     for (auto it = coord_to_index.begin(); it != coord_to_index.end(); ) {
         if (it->second == atom_to_remove) {
             it = coord_to_index.erase(it);
@@ -58,20 +53,37 @@ void update_atoms_and_coord_to_index(vector<vector<float>>& atoms, map<vector<fl
             ++it;
         }
     }
-
-    //cout << "[After Removal] Atoms Size: " << atoms.size() << ", Coord to Index Size: " << coord_to_index.size() << ", Removed Atom Index: " << atom_to_remove << endl;
-
-    //cout << "Atoms After: " << atoms.size() << endl;
-    //cout << "Coord to Index After: " << coord_to_index.size() << endl;
 }
+
 
 void update_distance_map(map<pair<int, int>, double>& distance_map, int atom_to_remove) {
     for (auto it = distance_map.begin(); it != distance_map.end(); ) {
-        const auto& atom_pair = it->first;
-        if (atom_pair.first == atom_to_remove || atom_pair.second == atom_to_remove) {
-            it = distance_map.erase(it); // Remove distances involving the removed atom
+        const auto& [atom1, atom2] = it->first;
+        if (atom1 == atom_to_remove || atom2 == atom_to_remove) {
+            it = distance_map.erase(it);
         } else {
             ++it;
         }
     }
+}
+
+void update_triplet_data(map<tuple<int, int, int>, tuple<array<double, 3>, tuple<double, double, double>>>& triplet_data, 
+                         int atom_to_remove) {
+    map<tuple<int, int, int>, tuple<array<double, 3>, tuple<double, double, double>>> updated_triplet_data;
+
+    for (const auto& [triplet, data] : triplet_data) {
+        auto [atom1, atom2, atom3] = triplet;
+
+        if (atom1 == atom_to_remove || atom2 == atom_to_remove || atom3 == atom_to_remove) {
+            continue;
+        }
+
+        if (atom1 > atom_to_remove) --atom1;
+        if (atom2 > atom_to_remove) --atom2;
+        if (atom3 > atom_to_remove) --atom3;
+
+        updated_triplet_data.emplace(make_tuple(atom1, atom2, atom3), data);
+    }
+
+    triplet_data = std::move(updated_triplet_data);
 }
